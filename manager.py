@@ -3,6 +3,10 @@
 # Git : https://github.com/nympp/py-vpnmanager       #
 ######################################################
 
+# CHANGE THIS :
+MANAGER_INSTALL_PATH = "/home/phileas/Documents/Git/py-vpnmanager" # "~/Documents/pywg-gui"
+BASE_OPEN_PATH = "/home/phileas/Téléchargements"
+
 # Libraries import
 
 # TkInter, GUI
@@ -21,7 +25,7 @@ def ac_select_file():
     global file, ac_popup_tk, enter_filename, enter_prettyfilename
 
     # To select the wireguard config file, opens where you set to in the config file, default is /home
-    file = filedialog.askopenfilename(initialdir="/home/phileas", filetypes=(("Wireguard Conf Files", "*.conf"), ("All files", "*.*")))
+    file = filedialog.askopenfilename(initialdir=f"{BASE_OPEN_PATH}", filetypes=(("Wireguard Conf Files", "*.conf"), ("All files", "*.*")))
 
     showfile = Label(ac_popup_tk, text=f"File selected : {file}")
     showfile.pack()
@@ -64,7 +68,7 @@ def add_connection_to_wg():
 
     datarow = [prettyfilename, filename]
 
-    with open("config/connections.csv", "a", newline="") as connections:
+    with open(f"{MANAGER_INSTALL_PATH}/config/connections.csv", "a", newline="") as connections:
         f_csv = csv.writer(connections, delimiter=",")
         f_csv.writerow(datarow)
 
@@ -93,7 +97,7 @@ add_button.pack()
 
 data = []
 
-with open("config/connections.csv", newline="") as connections:
+with open("{MANAGER_INSTALL_PATH}/config/connections.csv", newline="") as connections:
     reader = csv.DictReader(connections, delimiter=",")
     for row in reader:
         data.append(row)
