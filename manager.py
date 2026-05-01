@@ -96,15 +96,13 @@ def display_all_connections_available():
             root_tk,
             width=780,
             height=50,
-            bg="ivory"
+            bg="#464646"
         ).place(x=10, y=h)
 
-        Label(root_tk, text=f"{prettyname}").place(x=20, y=h+12)
+        Label(root_tk, text=f"{prettyname}", fg="white", bg="#464646").place(x=20, y=h+12)
 
-        Button(root_tk, text="Connect", command=lambda f=filename: connect(f)).place(x=575, y=h+7)
-        Button(root_tk, text="Disconnect", command=disconnect_interfaces).place(x=670, y=h+7)
-
-        print(int((h - 145) / 50))
+        Button(root_tk, text="Connect", command=lambda f=filename: connect(f), fg="white", bg="#1B1B1B").place(x=575, y=h+7)
+        Button(root_tk, text="Disconnect", command=disconnect_interfaces, fg="white", bg="#1B1B1B").place(x=670, y=h+7)
 
         h += 50
 
@@ -126,6 +124,16 @@ def disconnect_interfaces():
 
     # disconnect all : sudo wg show interfaces | xargs -n1 sudo wg-quick down
 
+def quit():
+    global root_tk, ac_popup_tk
+
+    root_tk.destroy()
+    try:
+        ac_popup_tk.destroy()
+    except NameError:
+        pass
+
+    print("Exited succesfully.")
 
 # Main program
 
@@ -161,8 +169,8 @@ Label(root_tk, text="Available connections :", fg="white", bg="#1e1e1e").place(x
 available_connections_cnv = Canvas(
     root_tk,
     width=780,
-    height=300,
-    bg="white"
+    height=670,
+    bg="#1B1B1B"
 )
 available_connections_cnv.place(x=10, y=145)
 
@@ -176,5 +184,7 @@ display_all_connections_available()
 # Textbox, can be used for the pretty name of the connection
 # textbox = Text(root_tk, height=10, width=40)
 # textbox.pack()
+
+Button(root_tk, text="Quit", command=quit, fg="white", bg="#464646").place(x=730, y=830)
 
 root_tk.mainloop()
