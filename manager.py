@@ -4,8 +4,8 @@
 ######################################################
 
 # CHANGE THIS :
-MANAGER_INSTALL_PATH = "/home/phileas/Documents/Git/py-vpnmanager" # "~/Documents/pywg-gui"
-BASE_OPEN_PATH = "/home/phileas/Téléchargements"
+MANAGER_INSTALL_PATH = "~/Documents/pywg-gui"
+BASE_OPEN_PATH = "/home"
 
 # Libraries import
 
