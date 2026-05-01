@@ -12,6 +12,7 @@ BASE_OPEN_PATH = "/home/phileas/Téléchargements"
 # TkInter, GUI
 from tkinter import *
 from tkinter import filedialog
+from tkinter import ttk
 
 # CSV, to read CSV files
 import csv
@@ -75,6 +76,57 @@ def add_connection_to_wg():
     # Once completed, kill the window
     ac_popup_tk.destroy()
 
+def display_all_connections_available():
+    global root_tk
+
+    data = []
+
+    with open(f"{MANAGER_INSTALL_PATH}/config/connections.csv", newline="") as connections:
+        reader = csv.DictReader(connections, delimiter=",")
+        for row in reader:
+            data.append(row)
+
+    h = 145
+
+    for row in data:
+        filename = row["file_name"]
+        prettyname = row["vpn_pretty_name"]
+
+        Canvas(
+            root_tk,
+            width=780,
+            height=50,
+            bg="ivory"
+        ).place(x=10, y=h)
+
+        Label(root_tk, text=f"{prettyname}").place(x=20, y=h+12)
+
+        Button(root_tk, text="Connect", command=lambda f=filename: connect(f)).place(x=575, y=h+7)
+        Button(root_tk, text="Disconnect", command=disconnect_interfaces).place(x=670, y=h+7)
+
+        print(int((h - 145) / 50))
+
+        h += 50
+
+def connect(interface :str):
+
+    subprocess.run(
+        ["sudo", "wg-quick", "up", interface]
+    )
+
+    print(f"Connected to {interface}!")
+
+def disconnect_interfaces():
+    subprocess.run("sudo wg show interfaces | xargs -n1 sudo wg-quick down", shell=True, check=True)
+
+
+    # for row in data:
+    #    l = Label(root_tk, text=f"{row["vpn_pretty_name"]}")
+    #    l.pack()
+
+    # disconnect all : sudo wg show interfaces | xargs -n1 sudo wg-quick down
+
+
 # Main program
 
 print("Elevating with sudo...")
@@ -84,30 +136,40 @@ subprocess.run(["sudo", "echo", "Done!"])
 root_tk = Tk() # base Tk, named root_tk
 root_tk.geometry(f"{800}x{870}") # window size
 root_tk.title("Wireguard Connections Manager")
+root_tk.configure(bg="#1e1e1e")
 
-main_title = Label(root_tk, text="Wireguard Connection Manager")
-main_title.pack()
+main_title = Label(root_tk, text="Wireguard Connection Manager", font=("Arial", 16, "bold"), fg="white", bg="#1e1e1e")
+main_title.place(x=10, y=8)
+
+ttk.Separator(root_tk, orient="horizontal").pack(fill="x", pady=40)
+
+Label(root_tk, text="Configure connections :", fg="white", bg="#1e1e1e").place(x=10, y=55)
 
 # "add a connection" part
+add_button = Button(root_tk, text="Add a Wireguard Connection", command=add_connection, fg="white", bg="#464646")
+add_button.place(x=285, y=50)
 
-add_button = Button(root_tk, text="Add a Wireguard Connection", command=add_connection)
-add_button.pack()
+# manage connections button
+manage_button = Button(root_tk, text="Manage Wireguard Connections", fg="white", bg="#464646")
+manage_button.place(x=530, y=50)
 
-# Available conncetions display
+ttk.Separator(root_tk, orient="horizontal").pack(fill="x", pady=15)
 
-data = []
+# Available connections display
+Label(root_tk, text="Available connections :", fg="white", bg="#1e1e1e").place(x=10, y=105)
 
-with open(f"{MANAGER_INSTALL_PATH}/config/connections.csv", newline="") as connections:
-    reader = csv.DictReader(connections, delimiter=",")
-    for row in reader:
-        data.append(row)
+available_connections_cnv = Canvas(
+    root_tk,
+    width=780,
+    height=300,
+    bg="white"
+)
+available_connections_cnv.place(x=10, y=145)
 
-for row in data:
-    l = Label(root_tk, text=f"{row["vpn_pretty_name"]}")
-    l.pack()
+refresh_btn = Button(root_tk, text="Refresh List", command=display_all_connections_available, fg="white", bg="#464646")
+refresh_btn.place(x=670, y=103)
 
-
-
+display_all_connections_available()
 
 # subprocess.run(["sudo","ls","/etc/wireguard"]) 
 

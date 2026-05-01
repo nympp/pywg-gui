@@ -1,16 +1,19 @@
 # Buggy, do not use for now
+# Installation method :
+# $ git clone https://github.com/nympp/py-vpnmanager
+# $ cd py-vpnmanager/
+# $ config/install.sh
 
 echo "Welcome to the installer for pyWG GUI!"
-echo "Retrieving latest version..."
-git clone https://github.com/nympp/py-vpnmanager.git
-echo "Please look at py-vpnmanager/config/settings.conf and change your settings"
+echo "Please look at 'config/settings.conf' and change your settings"
+echo "REMINDER! pyWG GUI requires 'wireguard-tools' package installed!"
 echo "Installation will begin..."
 printf "Continue? [y/N]"
 read answer
 
 if [ "$answer" = "Y" ] || [ "$answer" = "y" ]; then
     # Moving the program to the desired path
-    . ./py-vpnmanager/config/settings.conf
+    . ./settings.conf # reads settings.conf
     mkdir "$INSTALLPATH"
     mv py-vpnmanager/* "$INSTALLPATH"
     # Adding "pywg" as a command
