@@ -25,39 +25,43 @@ import subprocess
 def ac_select_file():
     global file, ac_popup_tk, enter_filename, enter_prettyfilename
 
+    # TODO : Redo this with .place() instead of .pack() for elements, for a better look
+
     # To select the wireguard config file, opens where you set to in the config file, default is /home
     file = filedialog.askopenfilename(initialdir=f"{BASE_OPEN_PATH}", filetypes=(("Wireguard Conf Files", "*.conf"), ("All files", "*.*")))
 
+    # The label that shows which file has been selected
     showfile = Label(ac_popup_tk, text=f"File selected : {file}", bg="#1e1e1e", fg="white")
     showfile.pack()
 
-
+    # Label & Text zone for the filename that will be used by wireguard (will be save as FILENAME.conf)
     Label(ac_popup_tk, text="Enter the file name (avoid '*', '/', '.', ':') :", bg="#1e1e1e", fg="white").pack()
     enter_filename = Text(ac_popup_tk, height=1, width=20, fg="white", bg="#464646")
     enter_filename.pack()
 
+    # Label & Text zone for the "Pretty Filename", which means the name that will be displayed on pyWG-GUI
     Label(ac_popup_tk, text="Enter the pretty file name (the one that will be displayed on the manager) :", bg="#1e1e1e", fg="white").pack()
     enter_prettyfilename = Text(ac_popup_tk, height=1, width=20, fg="white", bg="#464646")
     enter_prettyfilename.pack()
 
+    # The button to add the connection
     Button(ac_popup_tk, text="Add connection", command=add_connection_to_wg, fg="white", bg="#464646").pack()
 
 
 def add_connection():
     global ac_popup_tk
 
+    # First, when loading a new popup of the root_tk, delete all other potential popups on screen
     kill_popups()
 
-    ac_popup_tk = Toplevel()
+    ac_popup_tk = Toplevel() # TopLevel() instead of Tk()
     ac_popup_tk.geometry(f"{600}x{600}")
     ac_popup_tk.title("Add a new Wireguard connection")
-    ac_popup_tk.configure(bg="#1e1e1e")
+    ac_popup_tk.configure(bg="#1e1e1e") # Dark gray/black background
 
+    # The button to launch the select file & renaming function (ac_select_file())
     select_file_button = Button(ac_popup_tk, text="Select .conf file", command=ac_select_file, fg="white", bg="#464646")
     select_file_button.pack()
-    
-
-    ac_popup_tk.mainloop()
 
 def add_connection_to_wg():
     global enter_prettyfilename, enter_filename, file
@@ -120,7 +124,6 @@ def connect(interface :str):
 def disconnect_interfaces():
     subprocess.run("sudo wg show interfaces | xargs -n1 sudo wg-quick down", shell=True, check=True)
 
-
     # for row in data:
     #    l = Label(root_tk, text=f"{row["vpn_pretty_name"]}")
     #    l.pack()
@@ -128,13 +131,9 @@ def disconnect_interfaces():
     # disconnect all : sudo wg show interfaces | xargs -n1 sudo wg-quick down
 
 def quit():
-    global root_tk, ac_popup_tk
+    global root_tk
 
     root_tk.destroy()
-    try:
-        ac_popup_tk.destroy()
-    except NameError:
-        pass
 
     print("Exited succesfully.")
 
@@ -148,8 +147,16 @@ def manage_connections():
     mc_popup_tk.title("Manage connections")
     mc_popup_tk.configure(bg="#1e1e1e")
 
+    Label(mc_popup_tk, text="Manage Wireguard connections", fg="white", bg="#1e1e1e").place(x=10, y=10)
+    Button(mc_popup_tk, text="Refresh list", fg="white", bg="#464646", command=display_all_connections_available_mc).place(x=480, y=5)
+
     display_all_connections_available_mc()
 
+    Button(mc_popup_tk, text="Quit", fg="white", bg="#464646", command=quit_mc).place(x=530, y=555)
+
+def quit_mc():
+    global mc_popup_tk
+    mc_popup_tk.destroy()
 
 def display_all_connections_available_mc():
     global mc_popup_tk
@@ -161,7 +168,7 @@ def display_all_connections_available_mc():
         for row in reader:
             data.append(row)
 
-    h = 10
+    h = 45
 
     for row in data:
         filename = row["file_name"]
@@ -176,12 +183,15 @@ def display_all_connections_available_mc():
 
         Label(mc_popup_tk, text=f"{prettyname}", fg="white", bg="#464646").place(x=20, y=h+12)
 
-        Button(mc_popup_tk, text="Rename", command=lambda f=filename: connect(f), fg="white", bg="#1B1B1B").place(x=412, y=h+7)
+        Button(mc_popup_tk, text="Rename", command=lambda f=filename, p=prettyname: rename_popup(f,p), fg="white", bg="#1B1B1B").place(x=412, y=h+7)
         Button(mc_popup_tk, text="Delete", command=disconnect_interfaces, fg="white", bg="#1B1B1B").place(x=508, y=h+7)
 
         h += 50
 
-def rename_connection(filename: str, new_pretty_name: str):
+def rename_connection(filename: str):
+    global new_prettyname_input, rename_mc_popup_tk
+
+    new_pretty_name = new_prettyname_input.get("1.0", "end-1c")
     
     data = []
 
@@ -197,11 +207,25 @@ def rename_connection(filename: str, new_pretty_name: str):
         writer = csv.DictWriter(connections, delimiter=",", fieldnames=data[0].keys())
         writer.writeheader()
         writer.writerows(data)
-                                                                                                                  
 
+    rename_mc_popup_tk.destroy()
+                                                                                                                  
+def rename_popup(filename: str, current_pretty_name: str):
+    global rename_mc_popup_tk, new_prettyname_input
+
+    rename_mc_popup_tk = Toplevel()
+    rename_mc_popup_tk.geometry(f"{400}x{75}")
+    rename_mc_popup_tk.title("Rename prompt")
+    rename_mc_popup_tk.configure(bg="#1e1e1e")
+
+    Label(rename_mc_popup_tk, text=f"Rename {current_pretty_name} (avoid ','):", bg="#1e1e1e", fg="white").place(x=10, y=5)
+    new_prettyname_input = Text(rename_mc_popup_tk, height=1, width=30, fg="white", bg="#464646")
+    new_prettyname_input.place(x=10, y=40)
+
+    Button(rename_mc_popup_tk, text="Rename", fg="white", bg="#464646", command=lambda f=filename: rename_connection(f)).place(x=300, y=35)
 
 def kill_popups():
-    global ac_popup_tk, mc_popup_tk
+    global ac_popup_tk, mc_popup_tk, rename_mc_popup_tk
 
     # This functions kills all popup window already opened when you open a new popup window
 
@@ -212,6 +236,11 @@ def kill_popups():
 
     try:
         mc_popup_tk.destroy()
+    except NameError:
+        pass
+
+    try:
+        rename_mc_popup_tk.destroy()
     except NameError:
         pass
 
