@@ -1,7 +1,7 @@
-######################################################
-# python/tkinter Wireguard Connections Manager       #
-# Git : https://github.com/nympp/py-vpnmanager       #
-######################################################
+################################################
+# python/tkinter Wireguard Connections Manager #
+# Git : https://github.com/nympp/pywg-gui      #
+################################################
 
 # CHANGE THIS :
 MANAGER_INSTALL_PATH = "/home/phileas/Documents/Git/pywg-gui" #"~/Documents/pywg-gui"
@@ -79,6 +79,9 @@ def add_connection_to_wg():
     with open(f"{MANAGER_INSTALL_PATH}/config/connections.csv", "a", newline="") as connections:
         f_csv = csv.writer(connections, delimiter=",")
         f_csv.writerow(datarow)
+
+    # Reload the list once a new connection is added
+    display_all_connections_available()
 
     # Once completed, kill the window
     ac_popup_tk.destroy()
@@ -208,6 +211,8 @@ def rename_connection(filename: str):
         writer.writeheader()
         writer.writerows(data)
 
+    display_all_connections_available()
+    display_all_connections_available_mc()
     rename_mc_popup_tk.destroy()
                                                                                                                   
 def rename_popup(filename: str, current_pretty_name: str):
