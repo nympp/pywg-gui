@@ -4,8 +4,8 @@
 ######################################################
 
 # CHANGE THIS :
-MANAGER_INSTALL_PATH = "~/Documents/pywg-gui"
-BASE_OPEN_PATH = "/home"
+MANAGER_INSTALL_PATH = "/home/phileas/Documents/Git/pywg-gui" #"~/Documents/pywg-gui"
+BASE_OPEN_PATH = "/home/phileas/Téléchargements"
 
 # Libraries import
 
@@ -46,7 +46,9 @@ def ac_select_file():
 def add_connection():
     global ac_popup_tk
 
-    ac_popup_tk = Tk()
+    kill_popups()
+
+    ac_popup_tk = Toplevel()
     ac_popup_tk.geometry(f"{600}x{600}")
     ac_popup_tk.title("Add a new Wireguard connection")
     ac_popup_tk.configure(bg="#1e1e1e")
@@ -136,6 +138,83 @@ def quit():
 
     print("Exited succesfully.")
 
+def manage_connections():
+    global mc_popup_tk
+
+    kill_popups()
+
+    mc_popup_tk = Toplevel()
+    mc_popup_tk.geometry(f"{600}x{600}")
+    mc_popup_tk.title("Manage connections")
+    mc_popup_tk.configure(bg="#1e1e1e")
+
+    display_all_connections_available_mc()
+
+
+def display_all_connections_available_mc():
+    global mc_popup_tk
+
+    data = []
+
+    with open(f"{MANAGER_INSTALL_PATH}/config/connections.csv", newline="") as connections:
+        reader = csv.DictReader(connections, delimiter=",")
+        for row in reader:
+            data.append(row)
+
+    h = 10
+
+    for row in data:
+        filename = row["file_name"]
+        prettyname = row["vpn_pretty_name"]
+
+        Canvas(
+            mc_popup_tk,
+            width=580,
+            height=50,
+            bg="#464646"
+        ).place(x=10, y=h)
+
+        Label(mc_popup_tk, text=f"{prettyname}", fg="white", bg="#464646").place(x=20, y=h+12)
+
+        Button(mc_popup_tk, text="Rename", command=lambda f=filename: connect(f), fg="white", bg="#1B1B1B").place(x=412, y=h+7)
+        Button(mc_popup_tk, text="Delete", command=disconnect_interfaces, fg="white", bg="#1B1B1B").place(x=508, y=h+7)
+
+        h += 50
+
+def rename_connection(filename: str, new_pretty_name: str):
+    
+    data = []
+
+    with open(f"{MANAGER_INSTALL_PATH}/config/connections.csv", newline="") as connections:
+        reader = csv.DictReader(connections, delimiter=",")
+
+        for row in reader:
+            if row["file_name"] == filename:
+                row["vpn_pretty_name"] = new_pretty_name
+            data.append(row)
+
+    with open(f"{MANAGER_INSTALL_PATH}/config/connections.csv", "w", newline="") as connections:
+        writer = csv.DictWriter(connections, delimiter=",", fieldnames=data[0].keys())
+        writer.writeheader()
+        writer.writerows(data)
+                                                                                                                  
+
+
+def kill_popups():
+    global ac_popup_tk, mc_popup_tk
+
+    # This functions kills all popup window already opened when you open a new popup window
+
+    try:
+        ac_popup_tk.destroy()
+    except NameError:
+        pass
+
+    try:
+        mc_popup_tk.destroy()
+    except NameError:
+        pass
+
 # Main program
 
 print("Elevating with sudo...")
@@ -159,7 +238,7 @@ add_button = Button(root_tk, text="Add a Wireguard Connection", command=add_conn
 add_button.place(x=285, y=50)
 
 # manage connections button
-manage_button = Button(root_tk, text="Manage Wireguard Connections", fg="white", bg="#464646")
+manage_button = Button(root_tk, text="Manage Wireguard Connections", command=manage_connections, fg="white", bg="#464646")
 manage_button.place(x=530, y=50)
 
 ttk.Separator(root_tk, orient="horizontal").pack(fill="x", pady=15)
